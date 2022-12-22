@@ -4,31 +4,15 @@ from google.cloud import pubsub
 from google.cloud import logging
 import os
 
-
-# ----------------------------
 #  User-configurable Constants
-PROJECT_ID = os.getenv('DLP_PROJECT_ID', 'lunar-subject-364714')
-"""The bucket the to-be-scanned files are uploaded to."""
+PROJECT_ID = os.getenv('DLP_PROJECT_ID', 'banded-operator-370512')
 STAGING_BUCKET = os.getenv('QUARANTINE_BUCKET', 'quar-1999')
-"""The bucket to move "sensitive" files to."""
 SENSITIVE_BUCKET = os.getenv('SENSITIVE_DATA_BUCKET', 'sens-1999')
-"""The bucket to move "non sensitive" files to."""
-NONSENSITIVE_BUCKET = os.getenv('INSENSITIVE_DATA_BUCKET', 'non-sens-1999')
-""" Pub/Sub topic to notify once the  DLP job completes."""
 PUB_SUB_TOPIC = os.getenv('PUB_SUB_TOPIC', 'dlp-topic')
-"""The minimum_likelihood (Enum) required before returning a match"""
-"""For more info visit: https://cloud.google.com/dlp/docs/likelihood"""
 MIN_LIKELIHOOD = os.getenv('MIN_LIKELIHOOD', 'POSSIBLE')
-"""The maximum number of findings to report (0 = server maximum)"""
 MAX_FINDINGS = 0
-"""The infoTypes of information to match. ALL_BASIC for common infoTypes"""
-"""For more info visit: https://cloud.google.com/dlp/docs/concepts-infotypes"""
 INFO_TYPES = os.getenv('INFO_TYPES', 'FIRST_NAME,PHONE_NUMBER,EMAIL_ADDRESS,US_SOCIAL_SECURITY_NUMBER').split(',')
-
 APP_LOG_NAME = os.getenv('LOG_NAME', 'DLP-classify-gcs-files')
-
-# End of User-configurable Constants
-# ----------------------------------
 
 # Initialize the Google Cloud client libraries
 dlp = google.cloud.dlp_v2.DlpServiceClient()
@@ -145,12 +129,4 @@ def resolve_DLP(data, context):
                                 file_name)  # copy the item to the sensitive bucket
         source_blob.delete()  # delete item from the quarantine bucket
 
-    else:
-        # No sensitive data found
-        log('Moving item to non-sensitive bucket', severity=LOG_SEVERITY_DEBUG)
-        destination_bucket = storage_client.get_bucket(NONSENSITIVE_BUCKET)
-        source_bucket.copy_blob(
-            source_blob, destination_bucket,
-            file_name)  # copy the item to the non-sensitive bucket
-        source_blob.delete()  # delete item from the quarantine bucket
-    log('classifying file [{}] Finished'.format(file_name), severity=LOG_SEVERITY_DEBUG)
+    
